@@ -1,11 +1,14 @@
-# Scheduling collections
+# Local scheduling (optional)
 
-The collector intentionally performs one request and exits. Use the operating system scheduler to
-run it approximately every five minutes; the dashboard is an independent read-only process.
+The v0.2 public history uses GitHub Actions once per hour at `XX:30 UTC`; see
+[the data pipeline guide](data_pipeline.md). The existing local `src.collector` remains a one-shot
+SQLite collector. Use the operating system scheduler only if you also want independent local history.
+The dashboard is a separate read-only process.
 
 ## Linux/macOS cron example
 
-Run `crontab -e` and adapt both absolute paths:
+Run `crontab -e` and adapt both absolute paths. This example collects locally every five minutes,
+independent of the public hourly dataset:
 
 ```cron
 */5 * * * * cd /path/to/tibia-world-analytics && /path/to/.venv/bin/python -m src.collector >> data/collector.log 2>&1
@@ -22,4 +25,3 @@ Create a basic task with a five-minute repeat interval and use:
 The default database path is `data/tibia_worlds.db`. Set `TIBIA_ANALYTICS_DB` or pass `--db` to use
 another location. Avoid overlapping invocations; SQLite serializes writers and duplicate source
 timestamps are ignored safely.
-

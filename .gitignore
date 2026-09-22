@@ -28,6 +28,13 @@ data/*.sqlite*
 data/*.db-wal
 data/*.db-shm
 data/*.db-journal
+data/**/*.db
+data/**/*.db-wal
+data/**/*.db-shm
+data/**/*.db-journal
+
+# Temporary files produced while publishing public datasets
+data/**/*.tmp
 
 # Streamlit local settings
 .streamlit/secrets.toml

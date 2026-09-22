@@ -59,6 +59,7 @@ class WorldsBatch:
     record_date: str | None
     api_version: int | None
     api_release: str | None
+    skipped_world_rows: int = 0
 
 
 def _utc_datetime(value: Any, fallback: datetime) -> datetime:
@@ -128,14 +129,17 @@ def parse_worlds_payload(
         raw_worlds.extend(value)
 
     parsed: list[WorldObservation] = []
+    skipped_world_rows = 0
     for index, item in enumerate(raw_worlds):
         if not isinstance(item, Mapping):
             LOGGER.warning("Skipping world row %d: expected an object", index)
+            skipped_world_rows += 1
             continue
         name = item.get("name")
         players = _optional_int(item, "players_online")
         if not isinstance(name, str) or not name.strip() or players is None or players < 0:
             LOGGER.warning("Skipping malformed world row %d", index)
+            skipped_world_rows += 1
             continue
         parsed.append(
             WorldObservation(
@@ -165,6 +169,7 @@ def parse_worlds_payload(
         record_date=_optional_str(worlds_node, "record_date"),
         api_version=_optional_int(api, "version"),
         api_release=_optional_str(api, "release"),
+        skipped_world_rows=skipped_world_rows,
     )
 
 

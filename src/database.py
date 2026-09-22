@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing, nullcontext
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -77,7 +78,7 @@ class StoreResult:
 def utc_text(value: datetime) -> str:
     """Serialize a timezone-aware datetime as canonical UTC ISO-8601."""
     utc_value = value.astimezone(UTC).replace(tzinfo=None)
-    return utc_value.isoformat(timespec="seconds") + "Z"
+    return utc_value.isoformat(timespec="auto") + "Z"
 
 
 def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
@@ -94,7 +95,7 @@ def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
 
 def initialize_database(db_path: Path | str | None = None) -> None:
     """Create the database schema if it does not exist."""
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection, connection:
         connection.executescript(SCHEMA_SQL)
 
 
@@ -107,16 +108,21 @@ def store_batch(
     db_path: Path | str | None = None,
     *,
     data_mode: str = "real",
+    connection: sqlite3.Connection | None = None,
 ) -> StoreResult:
-    """Atomically upsert world metadata and insert one historical batch."""
+    """Upsert one batch, optionally inside a caller-managed transaction."""
     if data_mode not in {"real", "demo"}:
         raise ValueError("data_mode must be 'real' or 'demo'")
-    initialize_database(db_path)
+    owned_connection = connection is None
+    if owned_connection:
+        initialize_database(db_path)
     observed_at = utc_text(batch.observed_at)
     collected_at = utc_text(batch.collected_at)
 
-    with connect(db_path) as connection:
-        connection.execute("BEGIN IMMEDIATE")
+    manager = closing(connect(db_path)) if owned_connection else nullcontext(connection)
+    with manager as connection, connection if owned_connection else nullcontext():
+        if owned_connection:
+            connection.execute("BEGIN IMMEDIATE")
         cursor = connection.execute(
             """
             INSERT INTO collection_runs (

@@ -27,3 +27,6 @@ and all its world rows are committed in one transaction, so partial failures rol
 Real and synthetic data use separate database files by default. `data_mode` is an additional guard;
 the dashboard refuses a database containing both modes.
 
+The v0.2 public pipeline does not commit this SQLite file. `python -m src.rebuild` reconstructs the
+same schema from monthly historical Parquets and, optionally, the current live CSV and reference
+files. The rebuild writes a fresh target database and refuses to overwrite an existing one.

@@ -1,0 +1,88 @@
+name: Prepare monthly historical dataset
+
+on:
+  schedule:
+    - cron: "10 3 * * *"
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "Closed UTC month (YYYY-MM); blank processes all pending months"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tibia-public-data-writer
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out application code from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-finalize.txt
+
+      - name: Install finalization dependencies
+        run: python -m pip install -r requirements-finalize.txt
+
+      - name: Check out the data branch for reading
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin data
+          git worktree add -b data-read ../tibia-data origin/data
+
+      - name: Prepare one review branch per closed month
+        shell: bash
+        env:
+          REQUESTED_MONTH: ${{ inputs.month }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$REQUESTED_MONTH" ]]; then
+            months="$REQUESTED_MONTH"
+          else
+            months=$(python -m src.historical pending \
+              --source-root "$GITHUB_WORKSPACE/../tibia-data" \
+              --output-root "$GITHUB_WORKSPACE")
+          fi
+          if [[ -z "$months" ]]; then
+            echo "No closed month needs finalization."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for month in $months; do
+            if [[ ! "$month" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]]; then
+              echo "Invalid month: $month" >&2
+              exit 1
+            fi
+            branch="finalize/$month"
+            if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+              echo "$branch already exists; review its pending pull request."
+              continue
+            fi
+            git switch -c "$branch" main
+            python -m src.historical finalize --month "$month" \
+              --source-root "$GITHUB_WORKSPACE/../tibia-data" \
+              --output-root "$GITHUB_WORKSPACE"
+            git add -- "data/historical/${month:0:4}/$month.parquet" \
+              "data/historical/${month:0:4}/$month.quality.json" \
+              "data/historical/${month:0:4}/$month.runs.csv" \
+              "data/historical/${month:0:4}/$month.worlds.csv"
+            git commit -m "data: finalize world population $month"
+            git push origin "HEAD:refs/heads/$branch"
+            echo "Review: https://github.com/${GITHUB_REPOSITORY}/compare/main...${branch}?expand=1" >> "$GITHUB_STEP_SUMMARY"
+            git switch main
+          done

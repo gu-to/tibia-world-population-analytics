@@ -7,28 +7,31 @@ The central question is not only *“How many players are online now?”*, but:
 
 > **How does the population of each Tibia world behave over time?**
 
-This MVP collects reliable history and provides descriptive exploration. It intentionally does not
-assign profile labels, scores, or clusters before enough real data exists to understand the
-distributions.
+Version 0.2 adds a public, automated hourly history while retaining the v0.1 local collector,
+SQLite analytics, demo generator, and dashboard. It does not assign profile labels, scores, or
+clusters before enough real data exists to understand the distributions.
 
 ## Pipeline and architecture
 
-```mermaid
-flowchart LR
-    A[TibiaData API v4] --> B[One-shot data collector]
-    B --> C[(SQLite)]
-    C --> D[SQL + descriptive analytics]
-    D --> E[Streamlit + Plotly dashboard]
+```text
+TibiaData API v4
+    → GitHub Actions hourly at XX:30 UTC
+    → data branch / data/live/YYYY-MM.csv + reference + audit
+    → monthly validation and coverage
+    → finalize/YYYY-MM review branch → PR → main historical Parquet
+    → local SQLite / future DuckDB / pandas
+    → Streamlit dashboard
 ```
 
-- **Collector:** one request to `GET /v4/worlds`, defensive validation, retries, logging, and an
-  atomic database transaction.
-- **Storage:** normalized world metadata, population snapshots, and audited collection runs.
-- **Analytics:** SQL for latest-state, time-window, filtering, grouping, averages, peaks, and series;
-  pandas complements SQLite for median, sample deviation, and percentiles.
-- **Dashboard:** independent, read-only Overview, World Explorer, and Compare Worlds pages.
-- **Demo generator:** deterministic synthetic patterns in a separate database, visibly labeled in
-  the dashboard.
+Three layers are kept distinct:
+
+1. **Public datasets:** the current month's text CSV and closed monthly Parquet partitions.
+2. **Local analytical database:** rebuildable SQLite, never committed to Git.
+3. **Application:** SQL, pandas, Plotly, and an independent Streamlit dashboard.
+
+The existing `python -m src.collector` command still collects one observation directly into local
+SQLite. The new `python -m src.pipeline` command writes public CSV/reference/audit files and is what
+the hourly workflow runs. Both use the same TibiaData API client.
 
 ## Data source discovery
 
@@ -57,6 +60,7 @@ Source: [TibiaData documentation](https://docs.tibiadata.com/) and
 - pandas
 - Plotly
 - Streamlit
+- PyArrow for monthly Parquet generation and local rebuild
 - pytest and Ruff for quality checks
 
 ## Quick start
@@ -64,8 +68,8 @@ Source: [TibiaData documentation](https://docs.tibiadata.com/) and
 ### 0. Clone the repository
 
 ```bash
-git clone <repository-url> tibia-world-analytics
-cd tibia-world-analytics
+git clone https://github.com/gu-to/tibia-world-population-analytics.git
+cd tibia-world-population-analytics
 ```
 
 ### 1. Create an environment
@@ -95,8 +99,7 @@ python -m src.collector
 ```
 
 This creates `data/tibia_worlds.db`. Repeating the same TibiaData source timestamp is safe and does
-not duplicate the run or snapshots. For continuous history, schedule this command every five minutes;
-see [scheduling examples](docs/SCHEDULING.md).
+not duplicate the run or snapshots. This manual command is independent of the public hourly workflow.
 
 Useful collector options:
 
@@ -108,10 +111,100 @@ python -m src.collector --db data/custom.db --log-level DEBUG
 ### 3. Open the dashboard
 
 ```bash
-streamlit run app/dashboard.py
+python -m streamlit run app/dashboard.py
 ```
 
 Closing Streamlit does not affect scheduled collections. All stored/displayed timestamps are UTC.
+
+## Automated public collection
+
+The [hourly workflow](.github/workflows/collect-hourly.yml) runs on `30 * * * *` in UTC and can also
+be started manually through **GitHub → Actions → Collect world population hourly → Run workflow**.
+GitHub may start it late or skip a scheduled run. The dataset preserves the TibiaData
+`information.timestamp` as `observed_at` and the actual ingestion time as `collected_at`; neither is
+rounded to the theoretical `XX:30` schedule. Missing runs remain gaps, never zero-valued rows.
+
+The workflow checks out current application code from `main` and writes only public datasets in a
+separate checkout of `data`. If `data` does not exist, the first successful run creates it from
+`main` without rewriting history. The workflow makes a commit only when public files change.
+The default `GITHUB_TOKEN` is sufficient; no personal token or secret is required.
+
+`data` contains current mutable CSVs and last-seen world metadata. `main` contains code and, after
+review/merge, immutable closed-month Parquets. Hourly commits never go to `main`. See
+[pipeline operations](docs/data_pipeline.md).
+
+For a local test using the real API, without committing anything:
+
+```bash
+python -m src.pipeline --root .
+```
+
+Use a temporary directory with a mocked API for tests; this command performs a live request and
+creates `data/live`, `data/audit`, and `data/reference` in the selected root.
+
+## Public data storage and quality
+
+| Location | Branch | Meaning |
+|---|---|---|
+| `data/live/YYYY-MM.csv` | `data` | Append-friendly population observations for the source observation month |
+| `data/audit/YYYY-MM.csv` | `data` | Successful collection times, assigned schedule slots, API release and world counts |
+| `data/reference/worlds.csv` | `data` | Last-seen metadata, first/last seen and active flag |
+| `data/historical/YYYY/YYYY-MM.parquet` | `main` after PR | Immutable closed-month population history |
+| `data/historical/YYYY/YYYY-MM.{runs,worlds}.csv` | `main` after PR | Monthly audit and reference snapshot for rebuild |
+| `data/historical/YYYY/YYYY-MM.quality.json` | `main` after PR | Coverage and validation report |
+| `data/*.db` | local only | SQLite analytics database; ignored by Git |
+
+Raw snapshot fields are only `observed_at`, `collected_at`, `world`, `players_online`, and `status`.
+World metadata is not repeated on every snapshot. The logical key is `(world, observed_at)`; reruns
+do not add a second copy. Invalid timestamps/counts, duplicate keys, unexpected columns, missing
+audit records, or inconsistent world counts stop publication. A drastic world-count drop also stops
+the hourly pipeline before it can mark most worlds inactive. See the
+[data dictionary](docs/data_dictionary.md).
+
+Coverage is calculated from unique hourly `XX:30` slots assigned by actual `collected_at`, not from
+the number of world rows. A completed month's expected slots equal days × 24. The quality report also
+lists missing slots and per-world coverage. Since GitHub does not expose the exact intended timestamp
+of each delayed scheduled event, a delay crossing the next `XX:30` boundary may be assigned to the
+later slot; the source observation timestamp is still preserved unchanged.
+
+## Monthly finalization and review
+
+The [finalization workflow](.github/workflows/finalize-month.yml) checks for closed months daily at
+03:10 UTC and supports **workflow_dispatch** with an optional `YYYY-MM` month. It validates the
+complete monthly CSV and audit, defensively removes identical duplicate rows, sorts observations,
+calculates coverage, writes compressed Parquet, reads it back for verification, and publishes a
+`finalize/YYYY-MM` branch. The run summary includes a compare link. Open a PR from that branch into
+`main`, review the report, and merge it manually. The workflow never silently commits to `main`.
+
+If a finalization branch or historical Parquet already exists, the automation skips or refuses to
+overwrite it. The old live CSV remains on `data` as source material until a separate retention policy
+is defined. Newly collected observations for an old month are accepted only through 02:59 UTC on the
+first day of the following month; after that they fail visibly to protect the review snapshot.
+
+Local finalization example with a source checkout of `data` and an output checkout of `main`:
+
+```bash
+python -m src.historical pending --source-root ../tibia-data --output-root .
+python -m src.historical finalize --month 2026-09 --source-root ../tibia-data --output-root .
+```
+
+Finalization requires a month that has actually ended. It will not overwrite existing output files.
+
+## Rebuild the local SQLite database
+
+After obtaining historical Parquets from `main`, and optionally the current live/reference/audit
+files from `data`, build a *new* SQLite file:
+
+```bash
+python -m src.rebuild --db data/rebuilt.db
+python -m src.rebuild --db data/rebuilt-with-live.db --include-live --live-root ../tibia-data
+```
+
+`--include-live` reads `data/live/*.csv` only for months without a historical Parquet. Use
+`--live-root` for a separate checkout of `data`, while `--root` (default: this checkout) supplies
+published historical partitions from `main`. The rebuild reads one monthly partition at a time and
+streams Parquet batches. It refuses to overwrite an existing SQLite file and publishes the new file
+only after validation. To use it in the dashboard, set `TIBIA_ANALYTICS_DB` to its path.
 
 ## Dashboard
 
@@ -191,19 +284,28 @@ The API-provided timestamp is the canonical observation time; local ingestion ti
 separately. Every timestamp is normalized to ISO-8601 UTC with `Z`. A complete collection is written
 inside one transaction. See [the detailed schema](docs/DATABASE.md).
 
+This SQLite schema is unchanged in v0.2. The public run audit is a monthly CSV; the rebuild maps it
+back into the existing `collection_runs` table.
+
 ## Project structure
 
 ```text
 app/                    Streamlit Overview and multipage views
-src/api.py              HTTP client and defensive response parser
-src/database.py         Schema, connections, and atomic persistence
-src/collector.py        One-shot collection CLI
-src/analytics.py        SQL read model and descriptive statistics
+src/api.py              Shared HTTP client and defensive response parser
+src/collector.py        Existing one-shot local SQLite collection
+src/database.py         Existing normalized SQLite schema and persistence
+src/pipeline.py         One-shot public hourly collection CLI
+src/datasets.py         Monthly live CSV, run audit, and world reference
+src/quality.py          Validation and hourly coverage
+src/historical.py       Monthly immutable Parquet finalization
+src/rebuild.py          Stream public monthly datasets into fresh SQLite
+src/analytics.py        Existing SQL read model and statistics
 src/demo_data.py        Separate deterministic synthetic dataset
-tests/                  Offline parser, persistence, idempotency, and analytics tests
+tests/                  Offline v0.1 and v0.2 validation tests
+.github/workflows/       Hourly collection and monthly finalization
 notebooks/              Optional exploratory starting point
 docs/                   API discovery, schema, and scheduling notes
-data/                   Generated databases (ignored by Git)
+data/                   Local DB ignored; public datasets intentionally versioned
 ```
 
 ## Tests and quality checks
@@ -218,6 +320,8 @@ ruff format --check .
 ```
 
 The test suite is offline: it uses fixtures and temporary SQLite databases, never requiring the API.
+`requirements-collector.txt` and `requirements-finalize.txt` keep GitHub Actions installations small.
+The project also maintains `uv.lock` for users who prefer `uv`.
 
 ## Configuration
 
@@ -229,21 +333,26 @@ No credentials or secrets are required by the public endpoint.
 
 ## Limitations
 
-- The API returns current state, so history begins only when this collector starts running.
-- Failed collections create gaps rather than fabricated/interpolated points.
-- Metadata is maintained as last-seen state; this MVP does not version historical metadata changes.
+- The API returns current state, so public history begins only when the automation starts running.
+- GitHub Actions may start late, skip a scheduled run, or be disabled after inactivity in a public
+  repository. Failed collections create gaps rather than fabricated/interpolated points.
+- Metadata is last-seen observational state; monthly reference snapshots capture the state known at
+  finalization, not necessarily every intermediate metadata change.
 - The overview endpoint does not include all fields available from a per-world request; the MVP avoids
   N+1 requests and stores only verified overview fields.
 - SQLite is appropriate for a local single-writer MVP, not a distributed ingestion service.
+- Finalization branches require human review and a PR into `main`; old live CSVs remain on `data`
+  until a future retention policy exists.
 - A short history cannot support reliable weekday/weekend or seasonal conclusions. The dashboard
   labels incomplete requested windows.
 
 ## Possible next versions
 
 - average hourly profiles with explicit regional/timezone framing;
-- weekday versus weekend distributions and missing-interval quality metrics;
-- metadata history and lifecycle/merge handling for worlds;
-- data export and retention policies;
+- weekday versus weekend distributions and source freshness monitoring;
+- metadata event history and lifecycle/merge handling for worlds;
+- archival/retention for closed CSVs on `data` after PR merge;
+- optional DuckDB reads over monthly Parquets and live CSV;
 - only after enough data: stability, peak intensity, and clustering validated against real
   distributions rather than arbitrary thresholds.
 
@@ -251,4 +360,5 @@ No credentials or secrets are required by the public endpoint.
 
 Tibia is a registered trademark of **CipSoft GmbH**. This is an independent, unofficial portfolio
 project and is not affiliated with, endorsed by, or sponsored by CipSoft. Data is accessed through
-the public TibiaData API; follow its terms and operational guidance.
+the community-operated TibiaData API, which is not an official CipSoft API; follow its terms and
+operational guidance.

@@ -36,6 +36,7 @@ def test_malformed_world_is_skipped_when_another_is_valid(valid_payload: dict) -
     batch = parse_worlds_payload(valid_payload)
 
     assert [world.name for world in batch.worlds] == ["Antica"]
+    assert batch.skipped_world_rows == 1
 
 
 @pytest.mark.parametrize(
