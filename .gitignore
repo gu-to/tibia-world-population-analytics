@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environments and local configuration
+.venv/
+venv/
+.uv-cache/
+.uv-python/
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Generated data and SQLite sidecars
+data/*.db
+data/*.sqlite*
+data/*.db-wal
+data/*.db-shm
+data/*.db-journal
+
+# Streamlit local settings
+.streamlit/secrets.toml
+
+# Notebook output/cache
+.ipynb_checkpoints/

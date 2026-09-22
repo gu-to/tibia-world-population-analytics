@@ -1,0 +1,26 @@
+[project]
+name = "tibia-world-population-analytics"
+version = "0.1.0"
+description = "Local historical analytics for Tibia world populations"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "requests>=2.34.2",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+exclude = [".venv", ".uv-cache", ".uv-python", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+]
