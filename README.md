@@ -7,9 +7,9 @@ The central question is not only *“How many players are online now?”*, but:
 
 > **How does the population of each Tibia world behave over time?**
 
-Version 0.2 adds a public, automated hourly history while retaining the v0.1 local collector,
-SQLite analytics, demo generator, and dashboard. It does not assign profile labels, scores, or
-clusters before enough real data exists to understand the distributions.
+Version 0.3 adds a safe local refresh command and makes sparse-history coverage and freshness
+visible in the dashboard. It retains the v0.1 local collector and v0.2 public hourly pipeline.
+It does not assign profile labels, scores, or clusters before enough real data exists.
 
 ## Pipeline and architecture
 
@@ -116,6 +116,37 @@ python -m streamlit run app/dashboard.py
 
 Closing Streamlit does not affect scheduled collections. All stored/displayed timestamps are UTC.
 
+### 4. Refresh from public history (v0.3)
+
+The local SQLite above does **not** update automatically when GitHub Actions commits new data.
+To inspect the public inputs and build a separate, current analytical database:
+
+```bash
+python -m src.sync --dry-run
+python -m src.sync --db data/public_history.db
+```
+
+The command temporarily reads the public `data` branch, combines its live CSV with any reviewed
+Parquets already present in this `main` checkout, and removes the temporary checkout. Point the
+dashboard to the new database with `TIBIA_ANALYTICS_DB` (PowerShell example):
+
+```powershell
+$env:TIBIA_ANALYTICS_DB = "data/public_history.db"
+python -m streamlit run app/dashboard.py
+```
+
+For later refreshes, close the dashboard first, then explicitly request replacement:
+
+```bash
+python -m src.sync --db data/public_history.db --replace
+```
+
+The previous SQLite is backed up as a timestamped `*.backup-*.db` file before replacement.
+`--replace` reconstructs from public datasets; manually collected snapshots absent from those
+datasets remain in the backup, not in the refreshed database. Without `--replace`, an existing
+target is never overwritten. Use `--data-root ../tibia-data` for an existing/offline data-branch
+checkout, or `--historical-only` to skip the live CSV. Run `python -m src.sync --help` for all options.
+
 ## Automated public collection
 
 The [hourly workflow](.github/workflows/collect-hourly.yml) runs on `30 * * * *` in UTC and can also
@@ -208,6 +239,11 @@ only after validation. To use it in the dashboard, set `TIBIA_ANALYTICS_DB` to i
 
 ## Dashboard
 
+Version 0.3 labels latest values as the *last observation*, not necessarily the current live
+population. The sidebar warns when local real data is stale. Means are means of **observed
+samples**, not time-weighted estimates of missing hours. Charts break their lines across long
+unobserved intervals; no zero or interpolated raw rows are created.
+
 ### Overview
 
 - latest total, monitored-world count, mean per world, and last collection time;
@@ -228,6 +264,18 @@ only after validation. To use it in the dashboard, set `TIBIA_ANALYTICS_DB` to i
 - the same basic statistics side by side;
 - global filters derived from database values for region, PvP type, BattlEye, premium-only,
   transfer type, and game-world type.
+
+### Data Quality & Coverage
+
+- last source observation and its age;
+- successful versus expected hourly collection slots over 7 or 30 UTC calendar days;
+- missing-slot calendar by day/hour and per-world coverage table;
+- explicit warning that delayed GitHub runs can be assigned only to an *inferred* hourly slot.
+
+The calendar uses the local SQLite. Refresh it with `python -m src.sync` to see newly published
+CSV observations. Global coverage concerns the collection pipeline; metadata filters apply to the
+per-world table, not to the global hourly slot count. Hours before the first local collection are
+excluded from coverage; missing hours after that remain visible.
 
 ## Synthetic demo data
 
@@ -284,8 +332,9 @@ The API-provided timestamp is the canonical observation time; local ingestion ti
 separately. Every timestamp is normalized to ISO-8601 UTC with `Z`. A complete collection is written
 inside one transaction. See [the detailed schema](docs/DATABASE.md).
 
-This SQLite schema is unchanged in v0.2. The public run audit is a monthly CSV; the rebuild maps it
-back into the existing `collection_runs` table.
+The SQLite tables remain compatible with v0.1/v0.2. New rebuilds include an index on
+`population_snapshots.collection_run_id` for bounded coverage queries. The public run audit is a
+monthly CSV; the rebuild maps it back into `collection_runs`.
 
 ## Project structure
 
@@ -299,9 +348,11 @@ src/datasets.py         Monthly live CSV, run audit, and world reference
 src/quality.py          Validation and hourly coverage
 src/historical.py       Monthly immutable Parquet finalization
 src/rebuild.py          Stream public monthly datasets into fresh SQLite
+src/sync.py             Safe local public-data refresh, with backup on explicit replacement
+src/monitoring.py       Bounded freshness and coverage calculations
 src/analytics.py        Existing SQL read model and statistics
 src/demo_data.py        Separate deterministic synthetic dataset
-tests/                  Offline v0.1 and v0.2 validation tests
+tests/                  Offline v0.1–v0.3 validation tests
 .github/workflows/       Hourly collection and monthly finalization
 notebooks/              Optional exploratory starting point
 docs/                   API discovery, schema, and scheduling notes
@@ -343,13 +394,15 @@ No credentials or secrets are required by the public endpoint.
 - SQLite is appropriate for a local single-writer MVP, not a distributed ingestion service.
 - Finalization branches require human review and a PR into `main`; old live CSVs remain on `data`
   until a future retention policy exists.
-- A short history cannot support reliable weekday/weekend or seasonal conclusions. The dashboard
-  labels incomplete requested windows.
+- A short or sparse history cannot support reliable weekday/weekend or seasonal conclusions. The
+  dashboard shows sample support and coverage but does not infer unobserved population.
+- Public-data refresh reads the latest `data` branch, while reviewed Parquets come from the local
+  `main` checkout; pull `main` first if a monthly PR was merged elsewhere.
 
 ## Possible next versions
 
-- average hourly profiles with explicit regional/timezone framing;
-- weekday versus weekend distributions and source freshness monitoring;
+- average hourly profiles with explicit regional/timezone framing **after** sufficient coverage;
+- weekday versus weekend distributions after sufficient coverage;
 - metadata event history and lifecycle/merge handling for worlds;
 - archival/retention for closed CSVs on `data` after PR merge;
 - optional DuckDB reads over monthly Parquets and live CSV;

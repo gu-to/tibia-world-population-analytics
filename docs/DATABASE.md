@@ -30,3 +30,7 @@ the dashboard refuses a database containing both modes.
 The v0.2 public pipeline does not commit this SQLite file. `python -m src.rebuild` reconstructs the
 same schema from monthly historical Parquets and, optionally, the current live CSV and reference
 files. The rebuild writes a fresh target database and refuses to overwrite an existing one.
+Version 0.3 adds `python -m src.sync` as a convenience wrapper around that rebuild. It requires
+`--replace` to refresh an existing SQLite file and first creates a consistent backup. New rebuilds
+also index `population_snapshots.collection_run_id` for bounded coverage queries; table columns and
+keys remain compatible with prior versions.

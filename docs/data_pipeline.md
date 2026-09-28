@@ -66,6 +66,20 @@ python -m src.historical pending --source-root ../tibia-data --output-root .
 python -m src.rebuild --db data/rebuilt.db --include-live --live-root ../tibia-data
 ```
 
+For the v0.3 convenience path, no persistent data worktree is required:
+
+```bash
+python -m src.sync --dry-run
+python -m src.sync --db data/public_history.db
+```
+
+The sync command clones only the public `data` branch into a temporary directory, lists selected
+monthly inputs, and uses the existing rebuild implementation. It refuses to replace an existing
+database unless `--replace` is passed. Replacement first makes a consistent, timestamped SQLite
+backup and refuses to proceed while SQLite sidecar files indicate an open writer. The old backup
+preserves any manual-only observations not contained in public datasets. `--data-root` supplies an
+existing local data checkout for offline runs; `--historical-only` uses only reviewed Parquets.
+
 The rebuilt SQLite is private/local and can be selected by the dashboard using
 `TIBIA_ANALYTICS_DB`. Monthly Parquets can also be queried directly by pandas or future DuckDB
 without consolidating years into one file.

@@ -6,8 +6,9 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.common import configure_page, render_sidebar
+from app.common import configure_page, render_sidebar, with_visual_gaps
 from src.analytics import latest_world_table, overview_kpis, total_population_series
+from src.monitoring import trailing_coverage
 
 configure_page("Overview")
 context = render_sidebar()
@@ -19,8 +20,9 @@ st.caption(
 )
 
 kpis = overview_kpis(context.db_path, context.filters)
+coverage = None if context.is_demo else trailing_coverage(context.db_path, 24)
 columns = st.columns(4)
-columns[0].metric("Players online now", f"{int(kpis.get('players_now') or 0):,}")
+columns[0].metric("Players at last snapshot", f"{int(kpis.get('players_now') or 0):,}")
 columns[1].metric("Worlds monitored", f"{int(kpis.get('worlds_monitored') or 0):,}")
 columns[2].metric("Average per world", f"{float(kpis.get('average_now') or 0):,.1f}")
 latest = pd.to_datetime(kpis.get("latest_at"), utc=True)
@@ -29,10 +31,19 @@ columns[3].metric(
 )
 
 columns = st.columns(2)
-columns[0].metric("Global peak · available last 24h", f"{int(kpis.get('peak_24h') or 0):,}")
+columns[0].metric("Observed peak · last available 24h", f"{int(kpis.get('peak_24h') or 0):,}")
 columns[1].metric(
-    "Global average · available last 24h", f"{float(kpis.get('average_24h') or 0):,.1f}"
+    "Observed-sample mean · last available 24h",
+    f"{float(kpis.get('average_24h') or 0):,.1f}",
 )
+if coverage is not None:
+    observed = len(coverage.observed_slots)
+    expected = len(coverage.expected_slots)
+    st.info(
+        f"Last available 24h: {observed}/{expected} hourly slots observed "
+        f"({observed / expected:.0%}). Averages describe collected samples only; "
+        "missing hours are not zeros."
+    )
 if int(kpis.get("observations_24h") or 0) < 2:
     st.info(
         "The 24-hour metrics currently contain fewer than two collection instants. "
@@ -45,11 +56,12 @@ if series.empty:
     st.info("No data matches the selected filters.")
 else:
     figure = px.line(
-        series,
+        with_visual_gaps(series, cadence_minutes=5 if context.is_demo else 60),
         x="observed_at",
         y="players_online",
         labels={"observed_at": "Observed at (UTC)", "players_online": "Players online"},
     )
+    figure.update_traces(mode="lines+markers", connectgaps=False)
     figure.update_layout(hovermode="x unified", height=430)
     st.plotly_chart(figure, width="stretch")
 
@@ -64,7 +76,7 @@ else:
             "region": "Region",
             "pvp_type": "PvP Type",
             "battleye_protected": "BattlEye",
-            "players_now": "Players Now",
+            "players_now": "Players at Snapshot",
             "average_24h": "Average 24h",
             "peak_24h": "Peak 24h",
             "premium_only": "Premium Only",
@@ -82,7 +94,7 @@ else:
                 "Region",
                 "PvP Type",
                 "BattlEye",
-                "Players Now",
+                "Players at Snapshot",
                 "Average 24h",
                 "Peak 24h",
                 "Status",

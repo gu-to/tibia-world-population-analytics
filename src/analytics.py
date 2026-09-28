@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from collections.abc import Sequence
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -34,7 +35,7 @@ def database_has_data(db_path: Path | str) -> bool:
     if not path.exists():
         return False
     try:
-        with connect(path) as connection:
+        with closing(connect(path)) as connection:
             row = connection.execute("SELECT EXISTS(SELECT 1 FROM population_snapshots)").fetchone()
         return bool(row[0])
     except sqlite3.DatabaseError:
@@ -68,14 +69,14 @@ def _filter_sql(filters: WorldFilters, alias: str = "w") -> tuple[str, list[Any]
 
 def latest_observed_at(db_path: Path | str) -> str | None:
     """Return the most recent source observation timestamp."""
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         row = connection.execute("SELECT MAX(observed_at) FROM collection_runs").fetchone()
     return row[0] if row else None
 
 
 def data_mode(db_path: Path | str) -> str | None:
     """Return the database mode, rejecting accidental mixed-mode databases."""
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         rows = connection.execute(
             "SELECT DISTINCT data_mode FROM collection_runs ORDER BY data_mode"
         ).fetchall()
@@ -96,7 +97,7 @@ def filter_options(db_path: Path | str) -> dict[str, list[Any]]:
         "game_world_type",
     )
     result: dict[str, list[Any]] = {}
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         for column in columns:
             rows = connection.execute(
                 f"SELECT DISTINCT {column} FROM worlds "  # noqa: S608 - fixed allowlist
@@ -139,7 +140,7 @@ def overview_kpis(db_path: Path | str, filters: WorldFilters = EMPTY_FILTERS) ->
         LEFT JOIN worlds w ON w.id = ps.world_id
         WHERE 1 = 1 {filter_sql}
     """
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         row = connection.execute(query, params + params).fetchone()
     return dict(row) if row else {}
 
@@ -167,7 +168,7 @@ def latest_world_table(db_path: Path | str, filters: WorldFilters = EMPTY_FILTER
         WHERE 1 = 1 {filter_sql}
         ORDER BY ps.players_online DESC, w.name
     """
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         return pd.read_sql_query(query, connection, params=params)
 
 
@@ -193,7 +194,7 @@ def total_population_series(
         GROUP BY ps.observed_at
         ORDER BY ps.observed_at
     """
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         frame = pd.read_sql_query(query, connection, params=params)
     if not frame.empty:
         frame["observed_at"] = pd.to_datetime(frame["observed_at"], utc=True)
@@ -203,7 +204,7 @@ def total_population_series(
 def list_worlds(db_path: Path | str, filters: WorldFilters = EMPTY_FILTERS) -> list[str]:
     """List world names matching metadata filters."""
     filter_sql, params = _filter_sql(filters)
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         rows = connection.execute(
             f"SELECT w.name FROM worlds w WHERE 1 = 1 {filter_sql} ORDER BY w.name",
             params,
@@ -227,7 +228,7 @@ def world_series(db_path: Path | str, worlds: Sequence[str], *, hours: int) -> p
         ORDER BY ps.observed_at, w.name
     """
     params = [*worlds, f"-{int(hours)} hours"]
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         frame = pd.read_sql_query(query, connection, params=params)
     if not frame.empty:
         frame["observed_at"] = pd.to_datetime(frame["observed_at"], utc=True)
@@ -267,7 +268,7 @@ def world_statistics(db_path: Path | str, worlds: Sequence[str], *, hours: int) 
         ORDER BY s.world
     """
     params = [*worlds, f"-{int(hours)} hours"]
-    with connect(db_path) as connection:
+    with closing(connect(db_path)) as connection:
         base = pd.read_sql_query(query, connection, params=params)
     series = world_series(db_path, worlds, hours=hours)
     if base.empty or series.empty:

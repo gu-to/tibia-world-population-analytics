@@ -2,12 +2,23 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.common import configure_page, history_notice, render_sidebar
+from app.common import (
+    configure_page,
+    coverage_notice,
+    format_age,
+    history_notice,
+    render_sidebar,
+    with_visual_gaps,
+)
 from src.analytics import list_worlds, world_series, world_statistics
+from src.monitoring import trailing_coverage
+from src.quality import parse_utc
 
 configure_page("World Explorer")
 context = render_sidebar()
@@ -31,9 +42,11 @@ if series.empty or statistics.empty:
 
 row = statistics.iloc[0]
 history_notice(row["first_observed_at"], row["last_observed_at"], hours)
+if not context.is_demo:
+    coverage_notice(trailing_coverage(context.db_path, hours), [selected_world])
 
 first_row = st.columns(5)
-first_row[0].metric("Current", f"{int(row['current']):,}")
+first_row[0].metric("Last observed", f"{int(row['current']):,}")
 first_row[1].metric("Mean", f"{row['mean']:.1f}")
 first_row[2].metric("Median", f"{row['median']:.1f}")
 first_row[3].metric("Minimum", f"{int(row['minimum']):,}")
@@ -48,15 +61,18 @@ second_row[3].metric("P75", f"{row['p75']:.1f}")
 second_row[4].metric("P90", f"{row['p90']:.1f}")
 
 peak_at = pd.to_datetime(row["peak_at"], utc=True)
+age = format_age(datetime.now(UTC) - parse_utc(row["last_observed_at"]))
 st.caption(
-    f"{int(row['samples']):,} samples · observed peak at {peak_at.strftime('%Y-%m-%d %H:%M UTC')}"
+    f"{int(row['samples']):,} observed samples · last sample {age} old · "
+    f"observed peak at {peak_at.strftime('%Y-%m-%d %H:%M UTC')}"
 )
 
 figure = px.line(
-    series,
+    with_visual_gaps(series, cadence_minutes=5 if context.is_demo else 60),
     x="observed_at",
     y="players_online",
     labels={"observed_at": "Observed at (UTC)", "players_online": "Players online"},
 )
+figure.update_traces(mode="lines+markers", connectgaps=False)
 figure.update_layout(hovermode="x unified", height=520)
 st.plotly_chart(figure, width="stretch")

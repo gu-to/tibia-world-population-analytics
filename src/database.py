@@ -59,6 +59,8 @@ CREATE INDEX IF NOT EXISTS idx_snapshots_observed_at
     ON population_snapshots(observed_at);
 CREATE INDEX IF NOT EXISTS idx_snapshots_world_time
     ON population_snapshots(world_id, observed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_snapshots_run
+    ON population_snapshots(collection_run_id);
 CREATE INDEX IF NOT EXISTS idx_worlds_filters
     ON worlds(location, pvp_type, battleye_protected, premium_only);
 

@@ -5,8 +5,15 @@ from __future__ import annotations
 import plotly.express as px
 import streamlit as st
 
-from app.common import configure_page, history_notice, render_sidebar
+from app.common import (
+    configure_page,
+    coverage_notice,
+    history_notice,
+    render_sidebar,
+    with_visual_gaps,
+)
 from src.analytics import list_worlds, world_series, world_statistics
+from src.monitoring import trailing_coverage
 
 configure_page("Compare Worlds")
 context = render_sidebar()
@@ -37,9 +44,12 @@ if series.empty or statistics.empty:
 
 shortest = statistics.sort_values("first_observed_at", ascending=False).iloc[0]
 history_notice(shortest["first_observed_at"], shortest["last_observed_at"], hours)
+coverage = None if context.is_demo else trailing_coverage(context.db_path, hours)
+if coverage is not None:
+    coverage_notice(coverage, selected_worlds)
 
 figure = px.line(
-    series,
+    with_visual_gaps(series, cadence_minutes=5 if context.is_demo else 60, group="world"),
     x="observed_at",
     y="players_online",
     color="world",
@@ -49,6 +59,7 @@ figure = px.line(
         "world": "World",
     },
 )
+figure.update_traces(mode="lines+markers", connectgaps=False)
 figure.update_layout(hovermode="x unified", height=540)
 st.plotly_chart(figure, width="stretch")
 
@@ -57,7 +68,7 @@ display = statistics.rename(
     columns={
         "world": "World",
         "samples": "Samples",
-        "current": "Current",
+        "current": "Last Observed",
         "mean": "Mean",
         "median": "Median",
         "minimum": "Minimum",
@@ -70,6 +81,14 @@ display = statistics.rename(
         "peak_at": "Peak At (UTC)",
     }
 )
+if coverage is not None:
+    expected = len(coverage.expected_slots)
+    display["Observed Slots"] = display["World"].map(
+        lambda world: len(coverage.world_slots.get(world, frozenset()))
+    )
+    display["Coverage"] = display["Observed Slots"].map(
+        lambda observed: f"{observed / expected:.0%}" if expected else "—"
+    )
 numeric_columns = ["Mean", "Median", "Std. Dev.", "P10", "P25", "P75", "P90"]
 display[numeric_columns] = display[numeric_columns].round(1)
 st.dataframe(
@@ -77,7 +96,8 @@ st.dataframe(
         [
             "World",
             "Samples",
-            "Current",
+            "Last Observed",
+            *(["Observed Slots", "Coverage"] if coverage is not None else []),
             "Mean",
             "Median",
             "Minimum",
