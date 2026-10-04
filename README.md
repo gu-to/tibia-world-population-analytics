@@ -266,6 +266,7 @@ segments indicate an unknown interval, not a measured trajectory.
 
 - up to eight series on one chart;
 - the same basic statistics side by side;
+- timezone-aware hourly and weekday comparisons with observed-sample and distinct-date support;
 - global filters derived from database values for region, PvP type, BattlEye, premium-only,
   transfer type, and game-world type.
 
@@ -274,6 +275,8 @@ segments indicate an unknown interval, not a measured trajectory.
 - last source observation and its age;
 - successful versus expected hourly collection slots over 7 or 30 UTC calendar days;
 - missing-slot calendar by day/hour and per-world coverage table;
+- on-demand, read-only comparison with public GitHub Actions runs: visible failures, slots with
+  no visible scheduled run, and successful runs without a nearby local audit;
 - explicit warning that delayed GitHub runs can be assigned only to an *inferred* hourly slot.
 
 The calendar uses the local SQLite. Refresh it with `python -m src.sync` to see newly published
@@ -281,13 +284,31 @@ CSV observations. Global coverage concerns the collection pipeline; metadata fil
 per-world table, not to the global hourly slot count. Hours before the first local collection are
 excluded from coverage; missing hours after that remain visible.
 
+The GitHub comparison needs an internet connection, is never required to open the dashboard, and
+does not write data. It can use `GITHUB_TOKEN` to avoid anonymous API rate limits. Forks can set
+`TIBIA_GITHUB_REPO=owner/repository`. Run the same read-only check from the terminal with:
+
+```bash
+python -m src.health --days 7 --github
+```
+
+Without `--github`, the command reports local coverage and freshness only. Matching a workflow
+start to a local audit uses a short time window, so its classifications are diagnostic clues, not
+proof of a missing run's root cause. A recently successful GitHub run may simply be newer than the
+last local `src.sync`.
+
 ### Population Patterns
 
 - one-world observed-population histogram for 7- or 30-day windows;
-- UTC-hour mean alongside sample counts for each observed hour;
-- weekday/weekend sample counts, means, and box plot;
+- selected-IANA-timezone hourly and weekday means alongside sample counts and distinct dates;
+- weekday/weekend sample counts, distinct dates, means, and box plot;
 - coverage and limited-history notices. These are descriptive views, not scores or claims about
   missing hours. Uneven collection times can bias apparent peaks and weekday/weekend differences.
+
+Select a display timezone in the sidebar. Source timestamps remain in UTC; time-series charts and
+population-pattern groupings are converted for display. The collection calendar always uses UTC
+because the public schedule is defined in UTC. Timezone conversion handles daylight-saving changes
+without inserting an observation for a skipped local hour.
 
 ## Synthetic demo data
 
@@ -362,9 +383,11 @@ src/historical.py       Monthly immutable Parquet finalization
 src/rebuild.py          Stream public monthly datasets into fresh SQLite
 src/sync.py             Safe local public-data refresh, with backup on explicit replacement
 src/monitoring.py       Bounded freshness and coverage calculations
+src/health.py           Optional GitHub Actions / local-audit health comparison
 src/analytics.py        Existing SQL read model and statistics
+src/patterns.py         Timezone-aware observed-sample profiles
 src/demo_data.py        Separate deterministic synthetic dataset
-tests/                  Offline v0.1–v0.4 validation tests
+tests/                  Offline data, presentation, and health validation tests
 .github/workflows/       Hourly collection and monthly finalization
 notebooks/              Optional exploratory starting point
 docs/                   API discovery, schema, and scheduling notes
@@ -408,13 +431,16 @@ No credentials or secrets are required by the public endpoint.
   until a future retention policy exists.
 - A short or sparse history cannot support reliable weekday/weekend or seasonal conclusions. The
   dashboard shows sample support and coverage but does not infer unobserved population.
+- GitHub run-to-audit matching is approximate because the raw public audit predates an explicit
+  workflow-run identifier. A successful rerun may add no new observation; an unseen scheduled
+  run does not by itself establish why GitHub did not start it.
 - Public-data refresh reads the latest `data` branch, while reviewed Parquets come from the local
   `main` checkout; pull `main` first if a monthly PR was merged elsewhere.
 
 ## Possible next versions
 
-- regional/user-selected timezones for hourly profiles once sample coverage supports them;
 - coverage-aware comparison of hourly and weekday/weekend patterns over longer histories;
+- optional external, independent collection monitor if GitHub scheduling remains sparse;
 - metadata event history and lifecycle/merge handling for worlds;
 - archival/retention for closed CSVs on `data` after PR merge;
 - optional DuckDB reads over monthly Parquets and live CSV;

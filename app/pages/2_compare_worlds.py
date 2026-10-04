@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 from app.common import (
@@ -13,6 +15,7 @@ from app.common import (
 )
 from src.analytics import list_worlds, world_series, world_statistics
 from src.monitoring import trailing_coverage
+from src.patterns import display_series_timezone, population_patterns
 
 configure_page("Compare Worlds")
 context = render_sidebar()
@@ -48,12 +51,12 @@ if coverage is not None:
     coverage_notice(coverage, selected_worlds)
 
 figure = population_line_chart(
-    series,
+    display_series_timezone(series, context.timezone),
     cadence_minutes=5 if context.is_demo else 60,
     height=540,
     group="world",
     labels={
-        "observed_at": "Observed at (UTC)",
+        "observed_at": f"Observed at ({context.timezone})",
         "players_online": "Players online",
         "world": "World",
     },
@@ -79,7 +82,7 @@ display = statistics.rename(
         "p25": "P25",
         "p75": "P75",
         "p90": "P90",
-        "peak_at": "Peak At (UTC)",
+        "peak_at": f"Peak At ({context.timezone})",
     }
 )
 if coverage is not None:
@@ -92,6 +95,11 @@ if coverage is not None:
     )
 numeric_columns = ["Mean", "Median", "Std. Dev.", "P10", "P25", "P75", "P90"]
 display[numeric_columns] = display[numeric_columns].round(1)
+display[f"Peak At ({context.timezone})"] = (
+    pd.to_datetime(display[f"Peak At ({context.timezone})"], utc=True)
+    .dt.tz_convert(context.timezone)
+    .dt.strftime("%Y-%m-%d %H:%M")
+)
 st.dataframe(
     display[
         [
@@ -108,9 +116,88 @@ st.dataframe(
             "P25",
             "P75",
             "P90",
-            "Peak At (UTC)",
+            f"Peak At ({context.timezone})",
         ]
     ],
     hide_index=True,
     width="stretch",
 )
+
+st.subheader(f"Observed patterns · {context.timezone}")
+patterns = population_patterns(series, context.timezone)
+st.caption(
+    "Comparison uses collected samples only. Hover over each point for sample and distinct-day "
+    "support; missing hours/days have no inferred population. Uneven collection may bias means."
+)
+if period_label == "24 hours":
+    st.info("A 24-hour window is too short to compare recurring weekday patterns.")
+else:
+    hourly = px.scatter(
+        patterns.hourly,
+        x="hour",
+        y="mean_players",
+        color="world",
+        custom_data=["samples", "days_observed"],
+        labels={
+            "hour": f"Hour ({context.timezone})",
+            "mean_players": "Observed mean",
+            "world": "World",
+        },
+    )
+    hourly.update_traces(
+        hovertemplate=(
+            "%{fullData.name}<br>%{x}:00<br>Mean: %{y:.1f}<br>Samples: %{customdata[0]}"
+            "<br>Distinct days: %{customdata[1]}<extra></extra>"
+        )
+    )
+    hourly.update_xaxes(tickmode="linear", dtick=2, range=[-0.5, 23.5])
+    hourly.update_layout(height=420)
+    st.plotly_chart(hourly, width="stretch")
+
+    weekday = px.scatter(
+        patterns.weekday,
+        x="weekday_index",
+        y="mean_players",
+        color="world",
+        custom_data=["samples", "days_observed", "weekday"],
+        labels={
+            "weekday_index": "Local weekday",
+            "mean_players": "Observed mean",
+            "world": "World",
+        },
+    )
+    weekday.update_traces(
+        hovertemplate=(
+            "%{fullData.name}<br>%{customdata[2]}<br>Mean: %{y:.1f}"
+            "<br>Samples: %{customdata[0]}"
+            "<br>Distinct dates: %{customdata[1]}<extra></extra>"
+        )
+    )
+    weekday.update_xaxes(
+        tickmode="array",
+        tickvals=list(range(7)),
+        ticktext=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    )
+    weekday.update_layout(height=420)
+    st.plotly_chart(weekday, width="stretch")
+
+    with st.expander("View sample support by hour and weekday"):
+        support_columns = st.columns(2)
+        hourly_support = patterns.hourly[["world", "hour", "samples", "days_observed"]].rename(
+            columns={
+                "world": "World",
+                "hour": "Hour",
+                "samples": "Samples",
+                "days_observed": "Distinct dates",
+            }
+        )
+        support_columns[0].dataframe(hourly_support, hide_index=True, width="stretch")
+        weekday_support = patterns.weekday[["world", "weekday", "samples", "days_observed"]].rename(
+            columns={
+                "world": "World",
+                "weekday": "Weekday",
+                "samples": "Samples",
+                "days_observed": "Distinct dates",
+            }
+        )
+        support_columns[1].dataframe(weekday_support, hide_index=True, width="stretch")

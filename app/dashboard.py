@@ -8,6 +8,7 @@ import streamlit as st
 from app.common import configure_page, population_line_chart, render_sidebar
 from src.analytics import latest_world_table, overview_kpis, total_population_series
 from src.monitoring import trailing_coverage
+from src.patterns import display_series_timezone
 
 configure_page("Overview")
 context = render_sidebar()
@@ -25,8 +26,11 @@ columns[0].metric("Players at last snapshot", f"{int(kpis.get('players_now') or 
 columns[1].metric("Worlds monitored", f"{int(kpis.get('worlds_monitored') or 0):,}")
 columns[2].metric("Average per world", f"{float(kpis.get('average_now') or 0):,.1f}")
 latest = pd.to_datetime(kpis.get("latest_at"), utc=True)
+if pd.notna(latest):
+    latest = latest.tz_convert(context.timezone)
 columns[3].metric(
-    "Last snapshot (UTC)", latest.strftime("%Y-%m-%d %H:%M") if pd.notna(latest) else "—"
+    f"Last snapshot ({context.timezone})",
+    latest.strftime("%Y-%m-%d %H:%M") if pd.notna(latest) else "—",
 )
 
 columns = st.columns(2)
@@ -55,10 +59,13 @@ if series.empty:
     st.info("No data matches the selected filters.")
 else:
     figure = population_line_chart(
-        series,
+        display_series_timezone(series, context.timezone),
         cadence_minutes=5 if context.is_demo else 60,
         height=430,
-        labels={"observed_at": "Observed at (UTC)", "players_online": "Players online"},
+        labels={
+            "observed_at": f"Observed at ({context.timezone})",
+            "players_online": "Players online",
+        },
     )
     st.plotly_chart(figure, width="stretch")
     st.caption(

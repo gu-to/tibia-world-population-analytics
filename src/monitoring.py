@@ -20,6 +20,7 @@ class CoverageWindow:
     world_slots: dict[str, frozenset[datetime]]
     world_last_seen: dict[str, datetime | None]
     successful_runs: int
+    run_collected_at: tuple[datetime, ...]
     last_collected_at: datetime | None
     last_observed_at: datetime | None
 
@@ -109,6 +110,7 @@ def coverage_window(db_path: Path | str, start: datetime, end: datetime) -> Cove
         world_slots={name: frozenset(slots) for name, slots in world_slots.items()},
         world_last_seen=world_last,
         successful_runs=len(runs),
+        run_collected_at=tuple(parse_utc(row["collected_at"]) for row in runs),
         last_collected_at=parse_utc(latest["collected_at"]) if latest["collected_at"] else None,
         last_observed_at=parse_utc(latest["observed_at"]) if latest["observed_at"] else None,
     )

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from functools import lru_cache
 from pathlib import Path
+from zoneinfo import available_timezones
 
 import pandas as pd
 import plotly.express as px
@@ -28,6 +30,17 @@ class DashboardContext:
     db_path: Path
     filters: WorldFilters
     is_demo: bool
+    timezone: str
+
+
+@lru_cache(maxsize=1)
+def display_timezones() -> tuple[str, ...]:
+    """Offer searchable IANA timezones, keeping common choices at the top."""
+    choices = available_timezones() | {"UTC"}
+    favorites = ("UTC", "America/Sao_Paulo", "America/New_York", "Europe/Berlin")
+    return tuple(name for name in favorites if name in choices) + tuple(
+        sorted(choices - set(favorites))
+    )
 
 
 def configure_page(title: str) -> None:
@@ -85,6 +98,8 @@ def render_sidebar() -> DashboardContext:
                     "to refresh it from public datasets."
                 )
 
+    st.sidebar.header("Presentation")
+    timezone = st.sidebar.selectbox("Display timezone", display_timezones())
     options = filter_options(db_path)
     st.sidebar.header("Filters")
     locations = st.sidebar.multiselect("Region", options["location"])
@@ -105,8 +120,11 @@ def render_sidebar() -> DashboardContext:
         transfer_types=tuple(transfers),
         game_world_types=tuple(game_types),
     )
-    st.sidebar.caption("All timestamps are stored and displayed in UTC.")
-    return DashboardContext(db_path=db_path, filters=filters, is_demo=is_demo)
+    st.sidebar.caption(
+        "Source timestamps remain stored in UTC. Time-series and population patterns use the "
+        "selected display timezone; the collection-coverage calendar remains in UTC."
+    )
+    return DashboardContext(db_path=db_path, filters=filters, is_demo=is_demo, timezone=timezone)
 
 
 def format_age(age: timedelta) -> str:

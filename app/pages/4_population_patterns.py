@@ -7,21 +7,17 @@ import plotly.express as px
 import streamlit as st
 
 from app.common import configure_page, coverage_notice, history_notice, render_sidebar
-from src.analytics import (
-    hourly_population_profile,
-    list_worlds,
-    weekday_weekend_summary,
-    world_series,
-    world_statistics,
-)
+from src.analytics import list_worlds, world_series, world_statistics
 from src.monitoring import trailing_coverage
+from src.patterns import WEEKDAYS, population_patterns
 
 configure_page("Population Patterns")
 context = render_sidebar()
 st.title("Population Patterns")
 st.caption(
-    "Exploratory descriptions of collected samples only. All hours and weekday labels are UTC; "
-    "missing observations are neither zero nor interpolated."
+    f"Exploratory descriptions of collected samples only. Hours and weekdays use "
+    f"{context.timezone}; stored source timestamps remain UTC. Missing observations are "
+    "neither zero nor interpolated."
 )
 
 world_names = list_worlds(context.db_path, context.filters)
@@ -41,6 +37,7 @@ if series.empty or statistics.empty:
     st.stop()
 
 stats = statistics.iloc[0]
+patterns = population_patterns(series, context.timezone)
 history_notice(stats["first_observed_at"], stats["last_observed_at"], hours)
 coverage = None if context.is_demo else trailing_coverage(context.db_path, hours)
 if coverage is not None:
@@ -71,21 +68,24 @@ st.caption(
     "the world spent at that population."
 )
 
-st.subheader("Population by hour · UTC")
-profile = hourly_population_profile(context.db_path, selected_world, hours=hours)
+st.subheader(f"Population by hour · {context.timezone}")
+profile = patterns.hourly
 if profile.empty:
     st.info("No hourly samples are available in this period.")
 else:
     charts = st.columns(2)
     hourly_mean = px.bar(
         profile,
-        x="hour_utc",
+        x="hour",
         y="mean_players",
-        custom_data=["samples"],
-        labels={"hour_utc": "Hour (UTC)", "mean_players": "Observed-sample mean"},
+        custom_data=["samples", "days_observed"],
+        labels={"hour": f"Hour ({context.timezone})", "mean_players": "Observed-sample mean"},
     )
     hourly_mean.update_traces(
-        hovertemplate="%{x}:00 UTC<br>Mean: %{y:.1f}<br>Samples: %{customdata[0]}<extra></extra>"
+        hovertemplate=(
+            "%{x}:00<br>Mean: %{y:.1f}<br>Samples: %{customdata[0]}"
+            "<br>Distinct days: %{customdata[1]}<extra></extra>"
+        )
     )
     hourly_mean.update_xaxes(tickmode="linear", dtick=2, range=[-0.5, 23.5])
     hourly_mean.update_layout(height=360)
@@ -93,43 +93,93 @@ else:
 
     sample_counts = px.bar(
         profile,
-        x="hour_utc",
+        x="hour",
         y="samples",
-        labels={"hour_utc": "Hour (UTC)", "samples": "Observed samples"},
+        custom_data=["days_observed"],
+        labels={"hour": f"Hour ({context.timezone})", "samples": "Observed samples"},
+    )
+    sample_counts.update_traces(
+        hovertemplate="%{x}:00<br>Samples: %{y}<br>Distinct days: %{customdata[0]}<extra></extra>"
     )
     sample_counts.update_xaxes(tickmode="linear", dtick=2, range=[-0.5, 23.5])
     sample_counts.update_layout(height=360)
     charts[1].plotly_chart(sample_counts, width="stretch")
     st.caption(
-        f"{len(profile)}/24 UTC hours contain observations. The mean uses only those samples; "
+        f"{len(profile)}/24 local hours contain observations. The mean uses only those samples; "
         "a missing hour has no bar, not a population of zero. Compare the sample counts "
-        "before interpreting apparent peaks."
+        "and distinct represented dates before interpreting apparent peaks."
     )
 
-st.subheader("Weekday versus weekend · UTC")
-summary = weekday_weekend_summary(context.db_path, selected_world, hours=hours)
+st.subheader(f"Population by weekday · {context.timezone}")
+weekday = patterns.weekday
+if weekday.empty:
+    st.info("No weekday samples are available in this period.")
+else:
+    weekday_charts = st.columns(2)
+    day_mean = px.bar(
+        weekday,
+        x="weekday_index",
+        y="mean_players",
+        custom_data=["samples", "days_observed", "weekday"],
+        labels={"weekday_index": "Local weekday", "mean_players": "Observed-sample mean"},
+    )
+    day_mean.update_traces(
+        hovertemplate=(
+            "%{customdata[2]}<br>Mean: %{y:.1f}<br>Samples: %{customdata[0]}"
+            "<br>Distinct dates: %{customdata[1]}<extra></extra>"
+        )
+    )
+    day_mean.update_xaxes(tickmode="array", tickvals=list(range(7)), ticktext=list(WEEKDAYS))
+    day_mean.update_layout(height=360)
+    weekday_charts[0].plotly_chart(day_mean, width="stretch")
+
+    day_counts = px.bar(
+        weekday,
+        x="weekday_index",
+        y="samples",
+        custom_data=["days_observed", "weekday"],
+        labels={"weekday_index": "Local weekday", "samples": "Observed samples"},
+    )
+    day_counts.update_traces(
+        hovertemplate=(
+            "%{customdata[1]}<br>Samples: %{y}<br>Distinct dates: %{customdata[0]}<extra></extra>"
+        )
+    )
+    day_counts.update_xaxes(tickmode="array", tickvals=list(range(7)), ticktext=list(WEEKDAYS))
+    day_counts.update_layout(height=360)
+    weekday_charts[1].plotly_chart(day_counts, width="stretch")
+    st.caption(
+        f"{len(weekday)}/7 local weekdays are represented. Each mean weights snapshots, "
+        "not entire days. Compare samples and distinct dates before interpreting differences."
+    )
+
+st.subheader(f"Weekday versus weekend · {context.timezone}")
+summary = patterns.day_type
 if summary.empty:
     st.info("No weekday or weekend samples are available in this period.")
 else:
     display = summary.rename(
         columns={
-            "day_type": "Day type (UTC)",
+            "day_type": f"Day type ({context.timezone})",
             "samples": "Samples",
+            "days_observed": "Distinct dates",
             "mean_players": "Observed mean",
+            "median_players": "Observed median",
             "minimum": "Minimum",
             "maximum": "Maximum",
         }
     )
-    display["Observed mean"] = display["Observed mean"].round(1)
+    display[["Observed mean", "Observed median"]] = display[
+        ["Observed mean", "Observed median"]
+    ].round(1)
+    display = display.drop(columns="world")
     st.dataframe(display, hide_index=True, width="stretch")
     if len(summary) < 2:
         st.info("Only one day type has observations; a comparison is not yet possible.")
     else:
-        observed = series.assign(
+        observed = patterns.observations.assign(
             day_type=pd.Categorical(
-                series["observed_at"].dt.dayofweek.map(
-                    lambda day: "Weekend" if day >= 5 else "Weekday"
-                ),
+                patterns.observations["day_type"],
                 categories=["Weekday", "Weekend"],
                 ordered=True,
             )
@@ -139,7 +189,10 @@ else:
             x="day_type",
             y="players_online",
             points="all",
-            labels={"day_type": "Day type (UTC)", "players_online": "Players online"},
+            labels={
+                "day_type": f"Day type ({context.timezone})",
+                "players_online": "Players online",
+            },
         )
         comparison.update_layout(height=390)
         st.plotly_chart(comparison, width="stretch")

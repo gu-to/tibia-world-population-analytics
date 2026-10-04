@@ -17,6 +17,7 @@ from app.common import (
 )
 from src.analytics import list_worlds, world_series, world_statistics
 from src.monitoring import trailing_coverage
+from src.patterns import display_series_timezone
 from src.quality import parse_utc
 
 configure_page("World Explorer")
@@ -59,18 +60,21 @@ second_row[2].metric("P25", f"{row['p25']:.1f}")
 second_row[3].metric("P75", f"{row['p75']:.1f}")
 second_row[4].metric("P90", f"{row['p90']:.1f}")
 
-peak_at = pd.to_datetime(row["peak_at"], utc=True)
+peak_at = pd.to_datetime(row["peak_at"], utc=True).tz_convert(context.timezone)
 age = format_age(datetime.now(UTC) - parse_utc(row["last_observed_at"]))
 st.caption(
     f"{int(row['samples']):,} observed samples · last sample {age} old · "
-    f"observed peak at {peak_at.strftime('%Y-%m-%d %H:%M UTC')}"
+    f"observed peak at {peak_at.strftime('%Y-%m-%d %H:%M')} {context.timezone}"
 )
 
 figure = population_line_chart(
-    series,
+    display_series_timezone(series, context.timezone),
     cadence_minutes=5 if context.is_demo else 60,
     height=520,
-    labels={"observed_at": "Observed at (UTC)", "players_online": "Players online"},
+    labels={
+        "observed_at": f"Observed at ({context.timezone})",
+        "players_online": "Players online",
+    },
 )
 st.plotly_chart(figure, width="stretch")
 st.caption(

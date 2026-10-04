@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 import plotly.graph_objects as go
+import requests
 import streamlit as st
 
 from app.common import configure_page, format_age, render_sidebar
 from src.analytics import list_worlds
+from src.health import DEFAULT_REPOSITORY, compare_workflow_runs, fetch_workflow_runs
 from src.monitoring import coverage_window
 
 configure_page("Data Quality")
@@ -50,6 +53,44 @@ st.info(
     "delays a run beyond another boundary, its intended slot cannot be recovered. "
     "Global metrics ignore metadata filters; the per-world table respects them."
 )
+
+st.subheader("Collection health")
+st.caption(
+    "Local SQLite contains successful recorded collections, not failed or never-started "
+    "workflow runs. Check GitHub on demand to distinguish visible failures from missing "
+    "workflow executions. This does not alter the database."
+)
+if st.button("Compare with GitHub Actions"):
+    repository = os.getenv("TIBIA_GITHUB_REPO", DEFAULT_REPOSITORY)
+    try:
+        runs = fetch_workflow_runs(repository, start, now, token=os.getenv("GITHUB_TOKEN"))
+        comparison = compare_workflow_runs(report, runs)
+    except (ValueError, requests.RequestException) as exc:
+        st.warning(f"GitHub comparison unavailable: {exc}. Local coverage remains valid.")
+    else:
+        health_columns = st.columns(4)
+        health_columns[0].metric("Scheduled runs visible", comparison.scheduled_runs)
+        health_columns[1].metric("Successful runs", comparison.successful_runs)
+        health_columns[2].metric("Failed runs", comparison.failed_runs)
+        health_columns[3].metric("Slots without visible run", len(comparison.no_visible_run_slots))
+        st.caption(
+            f"{len(comparison.success_without_nearby_audit)} successful run(s) without a nearby "
+            f"local audit; {len(comparison.newer_than_local_sync)} run(s) newer than the local "
+            f"sync; {comparison.cancelled_runs} cancelled and {comparison.pending_runs} pending. "
+            "A successful rerun can legitimately add no new audit row."
+        )
+        if comparison.failed_run_ids:
+            links = ", ".join(
+                f"[#{run_id}](https://github.com/{repository}/actions/runs/{run_id})"
+                for run_id in comparison.failed_run_ids
+            )
+            st.warning(f"Failed workflow runs to inspect: {links}")
+        if comparison.no_visible_run_slots:
+            st.info(
+                "No GitHub run is visible for some inferred XX:30 slots. Delayed runs can be "
+                "assigned to a later slot, so this identifies a scheduling gap to investigate, "
+                "not its proven cause. Missing population remains missing, never zero."
+            )
 
 st.subheader("Collection calendar · UTC")
 calendar_days = [(start + timedelta(days=index)).date() for index in range(days)]
