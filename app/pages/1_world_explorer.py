@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 from app.common import (
@@ -13,8 +12,8 @@ from app.common import (
     coverage_notice,
     format_age,
     history_notice,
+    population_line_chart,
     render_sidebar,
-    with_visual_gaps,
 )
 from src.analytics import list_worlds, world_series, world_statistics
 from src.monitoring import trailing_coverage
@@ -67,12 +66,14 @@ st.caption(
     f"observed peak at {peak_at.strftime('%Y-%m-%d %H:%M UTC')}"
 )
 
-figure = px.line(
-    with_visual_gaps(series, cadence_minutes=5 if context.is_demo else 60),
-    x="observed_at",
-    y="players_online",
+figure = population_line_chart(
+    series,
+    cadence_minutes=5 if context.is_demo else 60,
+    height=520,
     labels={"observed_at": "Observed at (UTC)", "players_online": "Players online"},
 )
-figure.update_traces(mode="lines+markers", connectgaps=False)
-figure.update_layout(hovermode="x unified", height=520)
 st.plotly_chart(figure, width="stretch")
+st.caption(
+    "Dashed connections cross hours without observations; they are visual guides, not "
+    "interpolated population data."
+)

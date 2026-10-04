@@ -7,6 +7,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from src.analytics import (
@@ -169,3 +171,57 @@ def with_visual_gaps(
             result.append(row)
             previous = current
     return pd.DataFrame.from_records(result, columns=frame.columns)
+
+
+def population_line_chart(
+    frame: pd.DataFrame,
+    *,
+    cadence_minutes: int,
+    height: int,
+    group: str | None = None,
+    labels: dict[str, str] | None = None,
+) -> go.Figure:
+    """Draw observed segments solid and bridge missing periods with dashed guides.
+
+    Bridge endpoints are existing observations; no intermediate values are created.
+    The input frame and the stored dataset remain unchanged.
+    """
+    figure = px.line(
+        with_visual_gaps(frame, cadence_minutes=cadence_minutes, group=group),
+        x="observed_at",
+        y="players_online",
+        color=group,
+        labels=labels,
+    )
+    figure.update_traces(mode="lines+markers", connectgaps=False)
+    threshold = pd.Timedelta(minutes=cadence_minutes * 1.5)
+    colors = {trace.name: trace.line.color for trace in figure.data}
+    groups = frame.groupby(group, sort=False) if group else [(None, frame)]
+    for name, values in groups:
+        ordered = values.sort_values("observed_at")
+        bridge_x: list[object] = []
+        bridge_y: list[object] = []
+        previous: dict[str, object] | None = None
+        for row in ordered.to_dict("records"):
+            if previous is not None and (
+                pd.Timestamp(row["observed_at"]) - pd.Timestamp(previous["observed_at"]) > threshold
+            ):
+                bridge_x.extend((previous["observed_at"], row["observed_at"], None))
+                bridge_y.extend((previous["players_online"], row["players_online"], None))
+            previous = row
+        if bridge_x:
+            color = colors.get(str(name) if name is not None else "")
+            figure.add_trace(
+                go.Scatter(
+                    x=bridge_x,
+                    y=bridge_y,
+                    mode="lines",
+                    line={"color": color, "dash": "dash", "width": 2},
+                    opacity=0.6,
+                    hoverinfo="skip",
+                    showlegend=False,
+                    legendgroup=str(name) if name is not None else None,
+                )
+            )
+    figure.update_layout(hovermode="x unified", height=height)
+    return figure

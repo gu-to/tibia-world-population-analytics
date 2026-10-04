@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
-from app.common import configure_page, render_sidebar, with_visual_gaps
+from app.common import configure_page, population_line_chart, render_sidebar
 from src.analytics import latest_world_table, overview_kpis, total_population_series
 from src.monitoring import trailing_coverage
 
@@ -55,15 +54,17 @@ series = total_population_series(context.db_path, hours=24 * 30, filters=context
 if series.empty:
     st.info("No data matches the selected filters.")
 else:
-    figure = px.line(
-        with_visual_gaps(series, cadence_minutes=5 if context.is_demo else 60),
-        x="observed_at",
-        y="players_online",
+    figure = population_line_chart(
+        series,
+        cadence_minutes=5 if context.is_demo else 60,
+        height=430,
         labels={"observed_at": "Observed at (UTC)", "players_online": "Players online"},
     )
-    figure.update_traces(mode="lines+markers", connectgaps=False)
-    figure.update_layout(hovermode="x unified", height=430)
     st.plotly_chart(figure, width="stretch")
+    st.caption(
+        "Solid lines connect nearby observations; dashed lines bridge unobserved intervals "
+        "for visual orientation only. No population values were filled in."
+    )
 
 st.subheader("Worlds at the latest snapshot")
 worlds = latest_world_table(context.db_path, context.filters)

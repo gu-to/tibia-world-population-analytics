@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import plotly.express as px
 import streamlit as st
 
 from app.common import (
     configure_page,
     coverage_notice,
     history_notice,
+    population_line_chart,
     render_sidebar,
-    with_visual_gaps,
 )
 from src.analytics import list_worlds, world_series, world_statistics
 from src.monitoring import trailing_coverage
@@ -48,20 +47,22 @@ coverage = None if context.is_demo else trailing_coverage(context.db_path, hours
 if coverage is not None:
     coverage_notice(coverage, selected_worlds)
 
-figure = px.line(
-    with_visual_gaps(series, cadence_minutes=5 if context.is_demo else 60, group="world"),
-    x="observed_at",
-    y="players_online",
-    color="world",
+figure = population_line_chart(
+    series,
+    cadence_minutes=5 if context.is_demo else 60,
+    height=540,
+    group="world",
     labels={
         "observed_at": "Observed at (UTC)",
         "players_online": "Players online",
         "world": "World",
     },
 )
-figure.update_traces(mode="lines+markers", connectgaps=False)
-figure.update_layout(hovermode="x unified", height=540)
 st.plotly_chart(figure, width="stretch")
+st.caption(
+    "Dashed connections bridge unobserved intervals for each world. Missing hours "
+    "remain missing and are excluded from statistics."
+)
 
 st.subheader("Descriptive statistics")
 display = statistics.rename(

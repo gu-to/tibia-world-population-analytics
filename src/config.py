@@ -13,7 +13,7 @@ DEMO_DB_PATH = DATA_DIR / "demo_tibia_worlds.db"
 TIBIADATA_WORLDS_URL = "https://api.tibiadata.com/v4/worlds"
 HTTP_TIMEOUT_SECONDS = 15.0
 HTTP_RETRIES = 3
-USER_AGENT = "tibia-world-population-analytics/0.3"
+USER_AGENT = "tibia-world-population-analytics/0.4"
 
 
 def database_path(*, demo: bool = False) -> Path:

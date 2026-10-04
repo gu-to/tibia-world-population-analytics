@@ -7,8 +7,8 @@ The central question is not only *“How many players are online now?”*, but:
 
 > **How does the population of each Tibia world behave over time?**
 
-Version 0.3 adds a safe local refresh command and makes sparse-history coverage and freshness
-visible in the dashboard. It retains the v0.1 local collector and v0.2 public hourly pipeline.
+Version 0.4 adds gap-aware visual connections and exploratory population patterns with explicit
+sample support. It retains the v0.3 safe local refresh, v0.1 collector, and v0.2 public pipeline.
 It does not assign profile labels, scores, or clusters before enough real data exists.
 
 ## Pipeline and architecture
@@ -242,10 +242,11 @@ only after validation. To use it in the dashboard, set `TIBIA_ANALYTICS_DB` to i
 
 ## Dashboard
 
-Version 0.3 labels latest values as the *last observation*, not necessarily the current live
-population. The sidebar warns when local real data is stale. Means are means of **observed
-samples**, not time-weighted estimates of missing hours. Charts break their lines across long
-unobserved intervals; no zero or interpolated raw rows are created.
+Latest values are labeled as the *last observation*, not necessarily the current live population.
+The sidebar warns when local real data is stale. Means are means of **observed samples**, not
+time-weighted estimates of missing hours. Charts use solid lines between nearby observations and
+dashed visual guides across longer gaps; no zero or interpolated raw rows are created. Dashed
+segments indicate an unknown interval, not a measured trajectory.
 
 ### Overview
 
@@ -279,6 +280,14 @@ The calendar uses the local SQLite. Refresh it with `python -m src.sync` to see 
 CSV observations. Global coverage concerns the collection pipeline; metadata filters apply to the
 per-world table, not to the global hourly slot count. Hours before the first local collection are
 excluded from coverage; missing hours after that remain visible.
+
+### Population Patterns
+
+- one-world observed-population histogram for 7- or 30-day windows;
+- UTC-hour mean alongside sample counts for each observed hour;
+- weekday/weekend sample counts, means, and box plot;
+- coverage and limited-history notices. These are descriptive views, not scores or claims about
+  missing hours. Uneven collection times can bias apparent peaks and weekday/weekend differences.
 
 ## Synthetic demo data
 
@@ -342,7 +351,7 @@ monthly CSV; the rebuild maps it back into `collection_runs`.
 ## Project structure
 
 ```text
-app/                    Streamlit Overview and multipage views
+app/                    Streamlit Overview and multipage views, including Population Patterns
 src/api.py              Shared HTTP client and defensive response parser
 src/collector.py        Existing one-shot local SQLite collection
 src/database.py         Existing normalized SQLite schema and persistence
@@ -355,7 +364,7 @@ src/sync.py             Safe local public-data refresh, with backup on explicit 
 src/monitoring.py       Bounded freshness and coverage calculations
 src/analytics.py        Existing SQL read model and statistics
 src/demo_data.py        Separate deterministic synthetic dataset
-tests/                  Offline v0.1–v0.3 validation tests
+tests/                  Offline v0.1–v0.4 validation tests
 .github/workflows/       Hourly collection and monthly finalization
 notebooks/              Optional exploratory starting point
 docs/                   API discovery, schema, and scheduling notes
@@ -404,8 +413,8 @@ No credentials or secrets are required by the public endpoint.
 
 ## Possible next versions
 
-- average hourly profiles with explicit regional/timezone framing **after** sufficient coverage;
-- weekday versus weekend distributions after sufficient coverage;
+- regional/user-selected timezones for hourly profiles once sample coverage supports them;
+- coverage-aware comparison of hourly and weekday/weekend patterns over longer histories;
 - metadata event history and lifecycle/merge handling for worlds;
 - archival/retention for closed CSVs on `data` after PR merge;
 - optional DuckDB reads over monthly Parquets and live CSV;

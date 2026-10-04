@@ -287,3 +287,54 @@ def world_statistics(db_path: Path | str, worlds: Sequence[str], *, hours: int) 
         .reset_index()
     )
     return base.merge(extras, on="world", how="left")
+
+
+def hourly_population_profile(db_path: Path | str, world: str, *, hours: int) -> pd.DataFrame:
+    """Summarize observed samples by UTC hour; absent hours remain absent."""
+    if hours < 1:
+        raise ValueError("hours must be positive")
+    query = """
+        WITH latest AS (SELECT MAX(observed_at) AS ts FROM collection_runs)
+        SELECT CAST(strftime('%H', ps.observed_at) AS INTEGER) AS hour_utc,
+               COUNT(*) AS samples,
+               AVG(ps.players_online) AS mean_players,
+               MIN(ps.players_online) AS minimum,
+               MAX(ps.players_online) AS maximum
+        FROM population_snapshots ps
+        JOIN worlds w ON w.id = ps.world_id
+        CROSS JOIN latest
+        WHERE w.name = ? COLLATE NOCASE
+          AND datetime(ps.observed_at) >= datetime(latest.ts, ?)
+        GROUP BY hour_utc
+        ORDER BY hour_utc
+    """
+    with closing(connect(db_path)) as connection:
+        return pd.read_sql_query(query, connection, params=(world, f"-{hours} hours"))
+
+
+def weekday_weekend_summary(db_path: Path | str, world: str, *, hours: int) -> pd.DataFrame:
+    """Compare sampled weekday and weekend populations in UTC, without filling gaps."""
+    if hours < 1:
+        raise ValueError("hours must be positive")
+    query = """
+        WITH latest AS (SELECT MAX(observed_at) AS ts FROM collection_runs),
+        scoped AS (
+            SELECT ps.players_online,
+                   CASE WHEN strftime('%w', ps.observed_at) IN ('0', '6')
+                        THEN 'Weekend' ELSE 'Weekday' END AS day_type
+            FROM population_snapshots ps
+            JOIN worlds w ON w.id = ps.world_id
+            CROSS JOIN latest
+            WHERE w.name = ? COLLATE NOCASE
+              AND datetime(ps.observed_at) >= datetime(latest.ts, ?)
+        )
+        SELECT day_type, COUNT(*) AS samples,
+               AVG(players_online) AS mean_players,
+               MIN(players_online) AS minimum,
+               MAX(players_online) AS maximum
+        FROM scoped
+        GROUP BY day_type
+        ORDER BY CASE day_type WHEN 'Weekday' THEN 0 ELSE 1 END
+    """
+    with closing(connect(db_path)) as connection:
+        return pd.read_sql_query(query, connection, params=(world, f"-{hours} hours"))
