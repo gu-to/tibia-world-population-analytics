@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from app.common import configure_page, coverage_notice, history_notice, render_sidebar
 from src.analytics import list_worlds, world_series, world_statistics
 from src.monitoring import trailing_coverage
-from src.patterns import WEEKDAYS, population_patterns
+from src.patterns import WEEKDAYS, population_patterns, weekday_hour_grid
 
 configure_page("Population Patterns")
 context = render_sidebar()
@@ -152,6 +153,69 @@ else:
         f"{len(weekday)}/7 local weekdays are represented. Each mean weights snapshots, "
         "not entire days. Compare samples and distinct dates before interpreting differences."
     )
+
+st.subheader(f"Weekday × hour · {context.timezone}")
+minimum_dates = st.slider(
+    "Minimum distinct dates per cell",
+    min_value=1,
+    max_value=4,
+    value=1,
+    help="Cells below this support remain in the export but their population color is hidden.",
+)
+grid = weekday_hour_grid(patterns.weekday_hour, min_dates=minimum_dates)
+values = grid["display_mean"].to_numpy().reshape(7, 24)
+counts = grid["samples"].to_numpy().reshape(7, 24)
+support = grid[["samples", "days_observed"]].to_numpy().reshape(7, 24, 2)
+heatmaps = st.columns(2)
+population_heatmap = go.Figure(
+    go.Heatmap(
+        z=values,
+        x=list(range(24)),
+        y=list(WEEKDAYS),
+        customdata=support,
+        colorscale="Viridis",
+        colorbar={"title": "Players"},
+        hoverongaps=False,
+        hovertemplate=(
+            "%{y} %{x}:00<br>Observed mean: %{z:.1f}"
+            "<br>Samples: %{customdata[0]}<br>Distinct dates: %{customdata[1]}<extra></extra>"
+        ),
+    )
+)
+population_heatmap.update_layout(height=360, title="Observed population mean")
+population_heatmap.update_xaxes(dtick=2, title=f"Hour ({context.timezone})")
+heatmaps[0].plotly_chart(population_heatmap, width="stretch")
+count_heatmap = go.Figure(
+    go.Heatmap(
+        z=counts,
+        x=list(range(24)),
+        y=list(WEEKDAYS),
+        customdata=support,
+        colorscale="Blues",
+        colorbar={"title": "Samples"},
+        hovertemplate="%{y} %{x}:00<br>Samples: %{z}<br>Dates: %{customdata[1]}<extra></extra>",
+    )
+)
+count_heatmap.update_layout(height=360, title="Observation count")
+count_heatmap.update_xaxes(dtick=2, title=f"Hour ({context.timezone})")
+heatmaps[1].plotly_chart(count_heatmap, width="stretch")
+observed_cells = int((grid["samples"] > 0).sum())
+masked_cells = int(((grid["samples"] > 0) & ~grid["meets_min_dates"]).sum())
+single_date_cells = int((grid["days_observed"] == 1).sum())
+if observed_cells == masked_cells:
+    st.info("No weekday-hour cell meets this date minimum. Lower it or collect more dates.")
+st.caption(
+    f"{observed_cells}/168 weekday-hour cells have observations; {single_date_cells} rest on "
+    f"only one date; {masked_cells} are hidden by the selected minimum. Blank population "
+    "cells are missing or masked, never zero. The count chart uses zero only to mean "
+    "zero collected samples. Uneven collection times can bias apparent peaks."
+)
+st.download_button(
+    "Download weekday-hour support (CSV)",
+    data=grid.drop(columns="display_mean").to_csv(index=False).encode("utf-8"),
+    file_name=f"{selected_world.lower().replace(' ', '_')}_weekday_hour_{hours}h.csv",
+    mime="text/csv",
+)
 
 st.subheader(f"Weekday versus weekend · {context.timezone}")
 summary = patterns.day_type

@@ -17,6 +17,7 @@ class PopulationPatterns:
     observations: pd.DataFrame
     hourly: pd.DataFrame
     weekday: pd.DataFrame
+    weekday_hour: pd.DataFrame
     day_type: pd.DataFrame
 
 
@@ -72,5 +73,56 @@ def population_patterns(series: pd.DataFrame, timezone: str) -> PopulationPatter
     )
     hourly = _summary(observations, ["world", "hour"])
     weekday = _summary(observations, ["world", "weekday_index", "weekday"])
+    weekday_hour = _summary(observations, ["world", "weekday_index", "weekday", "hour"])
     day_type = _summary(observations, ["world", "day_type"])
-    return PopulationPatterns(observations, hourly, weekday, day_type)
+    return PopulationPatterns(observations, hourly, weekday, weekday_hour, day_type)
+
+
+def weekday_hour_grid(profile: pd.DataFrame, *, min_dates: int = 1) -> pd.DataFrame:
+    """Build a one-world display grid; missing population cells stay null."""
+    if min_dates < 1:
+        raise ValueError("min_dates must be positive")
+    if profile.empty or profile["world"].nunique() != 1:
+        raise ValueError("A nonempty single-world weekday-hour profile is required")
+    grid = pd.MultiIndex.from_product(
+        [range(7), range(24)], names=["weekday_index", "hour"]
+    ).to_frame(index=False)
+    values = profile.drop(columns="weekday").copy()
+    grid = grid.merge(values, on=["weekday_index", "hour"], how="left", validate="one_to_one")
+    grid["world"] = profile["world"].iloc[0]
+    grid["weekday"] = grid["weekday_index"].map(dict(enumerate(WEEKDAYS)))
+    grid[["samples", "days_observed"]] = grid[["samples", "days_observed"]].fillna(0).astype(int)
+    grid["meets_min_dates"] = grid["days_observed"] >= min_dates
+    grid["display_mean"] = grid["mean_players"].where(grid["meets_min_dates"])
+    return grid
+
+
+def comparison_profile(
+    profile: pd.DataFrame, observations: pd.DataFrame, *, min_dates: int = 1
+) -> pd.DataFrame:
+    """Add relative observed means and explicit support without inferring gaps."""
+    if min_dates < 1:
+        raise ValueError("min_dates must be positive")
+    result = profile.copy()
+    world_means = observations.groupby("world")["players_online"].mean()
+    result["world_mean"] = result["world"].map(world_means)
+    result["relative_mean_percent"] = (
+        result["mean_players"] / result["world_mean"].where(result["world_mean"] > 0) * 100
+    )
+    result["meets_min_dates"] = result["days_observed"] >= min_dates
+    result["display_mean"] = result["mean_players"].where(result["meets_min_dates"])
+    result["display_relative_percent"] = result["relative_mean_percent"].where(
+        result["meets_min_dates"]
+    )
+    return result
+
+
+def relative_population_series(series: pd.DataFrame) -> pd.DataFrame:
+    """Add each world's observed-mean percentage without changing raw populations."""
+    result = series.copy()
+    world_means = result.groupby("world")["players_online"].mean()
+    result["world_mean"] = result["world"].map(world_means)
+    result["relative_mean_percent"] = (
+        result["players_online"] / result["world_mean"].where(result["world_mean"] > 0) * 100
+    )
+    return result

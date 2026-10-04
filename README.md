@@ -7,8 +7,9 @@ The central question is not only *“How many players are online now?”*, but:
 
 > **How does the population of each Tibia world behave over time?**
 
-Version 0.4 adds gap-aware visual connections and exploratory population patterns with explicit
-sample support. It retains the v0.3 safe local refresh, v0.1 collector, and v0.2 public pipeline.
+Version 0.5 adds weekday-hour heatmaps, support-aware profile comparisons, optional relative
+normalization, and CSV exports. It retains the v0.4 gap-aware charts, v0.3 safe local refresh,
+v0.1 collector, and v0.2 public pipeline.
 It does not assign profile labels, scores, or clusters before enough real data exists.
 
 ## Pipeline and architecture
@@ -267,6 +268,9 @@ segments indicate an unknown interval, not a measured trajectory.
 - up to eight series on one chart;
 - the same basic statistics side by side;
 - timezone-aware hourly and weekday comparisons with observed-sample and distinct-date support;
+- optional normalization to each world's own observed mean (100%) to compare pattern shape;
+- a configurable distinct-date minimum that hides weakly supported chart points without changing
+  the underlying data, plus exports of selected observations and hourly profile support;
 - global filters derived from database values for region, PvP type, BattlEye, premium-only,
   transfer type, and game-world type.
 
@@ -301,6 +305,9 @@ last local `src.sync`.
 
 - one-world observed-population histogram for 7- or 30-day windows;
 - selected-IANA-timezone hourly and weekday means alongside sample counts and distinct dates;
+- weekday-by-hour population and sample-count heatmaps; missing population cells remain blank;
+- a configurable minimum of distinct local dates per heatmap cell and a CSV export containing
+  all 168 cells, observed means, sample counts, and support status;
 - weekday/weekend sample counts, distinct dates, means, and box plot;
 - coverage and limited-history notices. These are descriptive views, not scores or claims about
   missing hours. Uneven collection times can bias apparent peaks and weekday/weekend differences.
@@ -309,6 +316,10 @@ Select a display timezone in the sidebar. Source timestamps remain in UTC; time-
 population-pattern groupings are converted for display. The collection calendar always uses UTC
 because the public schedule is defined in UTC. Timezone conversion handles daylight-saving changes
 without inserting an observation for a skipped local hour.
+The relative comparison uses the mean of each world's *collected* snapshots in the selected
+period. It is undefined when that mean is zero and does not estimate population in missing hours.
+Support thresholds affect display only; CSV summaries retain observed values even for hidden
+points. Sparse or unevenly sampled periods should not be interpreted as stable recurring patterns.
 
 ## Synthetic demo data
 
