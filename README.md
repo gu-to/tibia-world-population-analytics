@@ -399,7 +399,7 @@ src/analytics.py        Existing SQL read model and statistics
 src/patterns.py         Timezone-aware observed-sample profiles
 src/demo_data.py        Separate deterministic synthetic dataset
 tests/                  Offline data, presentation, and health validation tests
-.github/workflows/       Hourly collection and monthly finalization
+.github/workflows/       Hourly collection, monthly finalization, and Python PR checks
 notebooks/              Optional exploratory starting point
 docs/                   API discovery, schema, and scheduling notes
 data/                   Local DB ignored; public datasets intentionally versioned
@@ -419,6 +419,11 @@ ruff format --check .
 The test suite is offline: it uses fixtures and temporary SQLite databases, never requiring the API.
 `requirements-collector.txt` and `requirements-finalize.txt` keep GitHub Actions installations small.
 The project also maintains `uv.lock` for users who prefer `uv`.
+
+The `Python checks` workflow runs automatically on pull requests into `main` and pushes to
+`main`, and can also be started manually. It installs `requirements-ci.txt` (without notebook
+tools), runs `ruff check src app tests`, and executes the offline test suite. The workflow has
+read-only repository permission, does not access the TibiaData API, and does not commit data.
 
 ## Configuration
 
