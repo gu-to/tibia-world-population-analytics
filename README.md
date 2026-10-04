@@ -142,6 +142,9 @@ python -m src.sync --db data/public_history.db --replace
 ```
 
 The previous SQLite is backed up as a timestamped `*.backup-*.db` file before replacement.
+On Windows, PyArrow needs the `tzdata` package to read UTC timestamps from Parquet. If this
+environment was installed before `tzdata` was added to `requirements.txt`, run
+`python -m pip install -r requirements.txt` and retry synchronization.
 `--replace` reconstructs from public datasets; manually collected snapshots absent from those
 datasets remain in the backup, not in the refreshed database. Without `--replace`, an existing
 target is never overwritten. Use `--data-root ../tibia-data` for an existing/offline data-branch
