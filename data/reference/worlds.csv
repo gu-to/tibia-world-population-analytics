@@ -1,97 +1,97 @@
 world,location,pvp_type,battleye_protected,battleye_date,premium_only,transfer_type,game_world_type,tournament_world_type,first_seen,last_seen,active
-Aethera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Antica,Europe,Open PvP,true,2017-08-29,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Astera,North America,Optional PvP,true,2017-09-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Belobra,South America,Optional PvP,true,2017-06-22,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Blumera,North America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Bona,Europe,Optional PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Bravoria,Europe,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Calmera,North America,Optional PvP,true,2017-09-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Cantabra,South America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Celebra,South America,Optional PvP,true,2018-10-29,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Celesta,Europe,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Citra,Europe,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Collabra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Descubra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Dia,Europe,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Dracobra,South America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Eclipta,Europe,Retro Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Epoca,Europe,Retro Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Escura,Europe,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Etebra,South America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Ferobra,South America,Open PvP,true,2017-07-04,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Firmera,North America,Retro Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Floribra,South America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Gentebra,South America,Optional PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Gladera,North America,Optional PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Gladibra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Harmonia,Europe,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Havera,North America,Open PvP,true,2021-12-06,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Honbra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Hostera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Idyllia,Europe,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Ignibra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Ignitera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Inabra,South America,Open PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Issobra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Jadebra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Jinxibra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Junera,North America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Kalanta,Europe,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Kalibra,South America,Optional PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Kalimera,North America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Kanda,Europe,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Karmeya,Europe,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Lobera,North America,Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Luminera,North America,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Lutabra,South America,Retro Open PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Luzibra,South America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Maligna,Europe,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Menera,North America,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Monstera,North America,Retro Hardcore PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Monza,Europe,Optional PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Mystera,North America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Nefera,North America,Optional PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Nevia,Europe,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Noctalia,Europe,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Oceanis,Oceania,Optional PvP,true,2024-04-10,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Ombra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Opulera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Ourobra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Pacera,North America,Optional PvP,true,2017-09-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Peloria,Europe,Open PvP,true,2017-10-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Penumbra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Premia,Europe,Open PvP,true,2017-09-05,true,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Quelibra,South America,Open PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Quidera,North America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Quintera,North America,Open PvP,true,2017-10-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Rasteibra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Refugia,Europe,Optional PvP,true,2017-09-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Retalia,Europe,Retro Hardcore PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Secura,Europe,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Serdebra,South America,Open PvP,true,2017-05-17,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Sinistra,Europe,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Solidera,North America,Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Sombra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Sonira,Europe,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Stralis,Oceania,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Talera,North America,Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Tempestera,North America,Retro Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Terribra,South America,Retro Hardcore PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Thyria,Europe,Open PvP,true,2021-12-06,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Tornabra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Unebra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Ustebra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Venebra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Victoris,Oceania,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Vunira,Europe,Open PvP,true,2017-10-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Wickera,North America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Wintera,North America,Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Xybra,South America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Xyla,Europe,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Xymera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Yonabra,South America,Optional PvP,true,2020-05-27,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Yovera,North America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Yubra,South America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Zuna,Europe,Hardcore PvP,true,2025-02-18,false,locked,experimental,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
-Zunera,North America,Hardcore PvP,true,2025-02-18,false,locked,experimental,,2026-09-22T19:27:46Z,2026-10-06T21:47:22Z,true
+Aethera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Antica,Europe,Open PvP,true,2017-08-29,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Astera,North America,Optional PvP,true,2017-09-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Belobra,South America,Optional PvP,true,2017-06-22,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Blumera,North America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Bona,Europe,Optional PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Bravoria,Europe,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Calmera,North America,Optional PvP,true,2017-09-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Cantabra,South America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Celebra,South America,Optional PvP,true,2018-10-29,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Celesta,Europe,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Citra,Europe,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Collabra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Descubra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Dia,Europe,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Dracobra,South America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Eclipta,Europe,Retro Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Epoca,Europe,Retro Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Escura,Europe,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Etebra,South America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Ferobra,South America,Open PvP,true,2017-07-04,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Firmera,North America,Retro Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Floribra,South America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Gentebra,South America,Optional PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Gladera,North America,Optional PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Gladibra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Harmonia,Europe,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Havera,North America,Open PvP,true,2021-12-06,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Honbra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Hostera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Idyllia,Europe,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Ignibra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Ignitera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Inabra,South America,Open PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Issobra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Jadebra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Jinxibra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Junera,North America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Kalanta,Europe,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Kalibra,South America,Optional PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Kalimera,North America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Kanda,Europe,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Karmeya,Europe,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Lobera,North America,Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Luminera,North America,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Lutabra,South America,Retro Open PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Luzibra,South America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Maligna,Europe,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Menera,North America,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Monstera,North America,Retro Hardcore PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Monza,Europe,Optional PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Mystera,North America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Nefera,North America,Optional PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Nevia,Europe,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Noctalia,Europe,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Oceanis,Oceania,Optional PvP,true,2024-04-10,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Ombra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Opulera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Ourobra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Pacera,North America,Optional PvP,true,2017-09-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Peloria,Europe,Open PvP,true,2017-10-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Penumbra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Premia,Europe,Open PvP,true,2017-09-05,true,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Quelibra,South America,Open PvP,true,2017-12-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Quidera,North America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Quintera,North America,Open PvP,true,2017-10-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Rasteibra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Refugia,Europe,Optional PvP,true,2017-09-12,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Retalia,Europe,Retro Hardcore PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Secura,Europe,Optional PvP,true,2017-09-05,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Serdebra,South America,Open PvP,true,2017-05-17,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Sinistra,Europe,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Solidera,North America,Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Sombra,South America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Sonira,Europe,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Stralis,Oceania,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Talera,North America,Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Tempestera,North America,Retro Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Terribra,South America,Retro Hardcore PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Thyria,Europe,Open PvP,true,2021-12-06,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Tornabra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Unebra,South America,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Ustebra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Venebra,South America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Victoris,Oceania,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Vunira,Europe,Open PvP,true,2017-10-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Wickera,North America,Retro Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Wintera,North America,Open PvP,true,2018-04-19,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Xybra,South America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Xyla,Europe,Open PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Xymera,North America,Open PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Yonabra,South America,Optional PvP,true,2020-05-27,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Yovera,North America,Optional PvP,true,release,false,regular,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Yubra,South America,Optional PvP,true,release,false,blocked,regular,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Zuna,Europe,Hardcore PvP,true,2025-02-18,false,locked,experimental,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
+Zunera,North America,Hardcore PvP,true,2025-02-18,false,locked,experimental,,2026-09-22T19:27:46Z,2026-10-07T01:43:24Z,true
